@@ -44,7 +44,7 @@ export const defaultPlaygroundState: PlaygroundState = {
   sessionConfig: { ...defaultSessionConfig },
   userPresets: [],
   selectedPresetId: "helpful-ai",
-  openaiAPIKey: null,
+  openaiAPIKey: "backend-managed-key",
   instructions:
     `
     Instructions:
