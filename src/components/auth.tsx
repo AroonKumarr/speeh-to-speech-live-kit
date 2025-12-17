@@ -61,7 +61,7 @@ export function Auth() {
         </div>
       )}
       <AuthDialog
-        open={showAuthDialog}
+        open={false}
         onOpenChange={setShowAuthDialog}
         onAuthComplete={() => setShowAuthDialog(false)}
       />
