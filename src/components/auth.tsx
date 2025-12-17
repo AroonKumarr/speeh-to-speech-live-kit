@@ -50,18 +50,19 @@ export function Auth() {
       {pgState.openaiAPIKey && (
         <div className="text-xs flex gap-2 items-center">
           <span className="font-semibold text-neutral-700">
-            Using OpenAI API Key
+            Using Backend Key
           </span>
+          {/* Hiding the specific key display since we are using backend now
           <div className="py-1 px-2 rounded-md bg-neutral-200 text-neutral-600">
             {ellipsisMiddle(pgState.openaiAPIKey, 4, 4)}
           </div>
-          <a className="hover:underline cursor-pointer" onClick={onLogout}>
-            Clear
-          </a>
+          */}
         </div>
       )}
+      
+      {/* THIS IS THE FIX: Forced open={false} to kill the popup forever */}
       <AuthDialog
-        open={false}
+        open={false} 
         onOpenChange={setShowAuthDialog}
         onAuthComplete={() => setShowAuthDialog(false)}
       />
@@ -86,11 +87,6 @@ export function AuthDialog({
     },
   });
 
-  // Add this useEffect hook to watch for changes in pgState.openaiAPIKey
-  // useEffect(() => {
-  //   form.setValue("openaiAPIKey", pgState.openaiAPIKey || "");
-  // }, [pgState.openaiAPIKey, form]);
-
   function onSubmit(values: z.infer<typeof AuthFormSchema>) {
     dispatch({ type: "SET_API_KEY", payload: values.openaiAPIKey || null });
     onOpenChange(false);
@@ -104,12 +100,11 @@ export function AuthDialog({
   });
 
   useEffect(() => {
-    handleSubmit(); // Auto-submit the form with the hardcoded key
-  }, []); // Runs once when the component mounts
+    // We try to submit automatically if a key exists
+    handleSubmit(); 
+  }, []); 
 
   return (
-    
-
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="sm:max-w-md p-0 border-0 rounded-lg overflow-hidden max-h-[90vh] flex flex-col"
