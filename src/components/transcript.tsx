@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useAgent } from "@/hooks/use-agent";
-import { useEffect, useRef, RefObject, useState } from "react";
+import { useEffect, useRef, RefObject, useState, useCallback } from "react";
+
 
 export function Transcript({
   scrollContainerRef,
@@ -17,15 +18,17 @@ export function Transcript({
     return scrollHeight - scrollTop - clientHeight;
   };
 
-  const handleScrollVisibility = (
-    container: HTMLElement,
-    scrollButton: HTMLButtonElement,
-  ) => {
+const handleScrollVisibility = useCallback(
+  (container: HTMLElement, scrollButton: HTMLButtonElement) => {
     const distanceFromBottom = calculateDistanceFromBottom(container);
     const shouldShowButton = distanceFromBottom > 100;
+
     setShowScrollButton(shouldShowButton);
     scrollButton.style.display = shouldShowButton ? "flex" : "none";
-  };
+  },
+  []
+);
+
 
   useEffect(() => {
     const container = scrollContainerRef.current;
