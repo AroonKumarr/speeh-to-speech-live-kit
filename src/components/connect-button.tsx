@@ -183,15 +183,37 @@ export function ConnectButton() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [initiateConnectionFlag, setInitiateConnectionFlag] = useState(false);
 
+
+
+
+  const startBackendSession = async () => {
+  try {
+    const response = await fetch(
+      "https://backendsts-production-e50c.up.railway.app/start-session",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ room_name: "default-room" }), // or dynamic room
+      }
+    );
+    const data = await response.json();
+    console.log("Backend session started:", data);
+  } catch (error) {
+    console.error("Failed to start backend session:", error);
+  }
+};
+
   const handleConnectionToggle = async () => {
     if (shouldConnect) {
       await disconnect();
     } else {
-      if (!pgState.openaiAPIKey) {
-        setShowAuthDialog(true);
-      } else {
-        await initiateConnection();
-      }
+      // Start backend session first
+await startBackendSession();
+
+// Then connect frontend to LiveKit
+await initiateConnection();
     }
   };
 
