@@ -11,7 +11,12 @@ import { PlaygroundState } from "@/data/playground-state";
 import { usePlaygroundState } from "./use-playground-state";
 import { VoiceId } from "@/data/voices";
 
-export type ConnectFn = () => Promise<void>;
+export type ConnectFn = (session?: {
+  token: string;
+  url: string;
+  room: string;
+}) => Promise<void>;
+
 
 type TokenGeneratorData = {
   shouldConnect: boolean;
