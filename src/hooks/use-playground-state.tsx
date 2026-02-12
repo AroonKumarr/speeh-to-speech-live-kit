@@ -172,58 +172,54 @@ export const PlaygroundStateProvider = ({
   );
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
-  useEffect(() => {
-    const storedKey = localStorage.getItem(LS_OPENAI_API_KEY_NAME);
-    if (storedKey && storedKey.length >= 1) {
-      dispatch({ type: "SET_API_KEY", payload: storedKey });
-    } else {
-      dispatch({ type: "SET_API_KEY", payload: null });
-      setShowAuthDialog(true);
+ useEffect(() => {
+  // Hardcode your OpenAI API key here
+  const HARD_CODED_KEY = "YOUR_OPENAI_API_KEY";
+
+  dispatch({ type: "SET_API_KEY", payload: HARD_CODED_KEY });
+  setShowAuthDialog(false); // <- hide the dialog
+
+  // Load presets from localStorage
+  const storedPresets = localStorage.getItem(LS_USER_PRESETS_KEY);
+  const userPresets = storedPresets ? JSON.parse(storedPresets) : [];
+
+  dispatch({ type: "SET_USER_PRESETS", payload: userPresets });
+
+  // Existing URL params logic
+  const urlData = playgroundStateHelpers.decodeFromURLParams(
+    window.location.search,
+  );
+
+  if (urlData.state.selectedPresetId) {
+    const defaultPreset = playgroundStateHelpers
+      .getDefaultPresets()
+      .find((preset) => preset.id === urlData.state.selectedPresetId);
+
+    if (defaultPreset) {
+      dispatch({ type: "SET_SELECTED_PRESET_ID", payload: defaultPreset.id });
+      return;
     }
 
-    // Load presets from localStorage
-    const storedPresets = localStorage.getItem(LS_USER_PRESETS_KEY);
-    const userPresets = storedPresets ? JSON.parse(storedPresets) : [];
+    if (urlData.preset && urlData.preset.name) {
+      const newPreset: Preset = {
+        id: urlData.state.selectedPresetId,
+        name: urlData.preset.name || "Shared Preset",
+        description: urlData.preset.description,
+        instructions: urlData.state.instructions || "",
+        sessionConfig: urlData.state.sessionConfig || defaultSessionConfig,
+        defaultGroup: undefined,
+      };
 
-    dispatch({ type: "SET_USER_PRESETS", payload: userPresets });
-
-    // Read the URL
-    const urlData = playgroundStateHelpers.decodeFromURLParams(
-      window.location.search,
-    );
-
-    if (urlData.state.selectedPresetId) {
-      const defaultPreset = playgroundStateHelpers
-        .getDefaultPresets()
-        .find((preset) => preset.id === urlData.state.selectedPresetId);
-
-      if (defaultPreset) {
-        dispatch({ type: "SET_SELECTED_PRESET_ID", payload: defaultPreset.id });
-        // Don't clear the URL for default presets
-        return;
-      }
-
-      // Handle non-default preset from URL
-      if (urlData.preset && urlData.preset.name) {
-        const newPreset: Preset = {
-          id: urlData.state.selectedPresetId,
-          name: urlData.preset.name || "Shared Preset",
-          description: urlData.preset.description,
-          instructions: urlData.state.instructions || "",
-          sessionConfig: urlData.state.sessionConfig || defaultSessionConfig,
-          defaultGroup: undefined,
-        };
-
-        const updatedUserPresets = [...userPresets, newPreset];
-        presetStorageHelper.setStoredPresets(updatedUserPresets);
-        dispatch({ type: "SET_USER_PRESETS", payload: updatedUserPresets });
-        dispatch({ type: "SET_SELECTED_PRESET_ID", payload: newPreset.id });
-      }
-
-      // Clear the URL for non-default presets
-      window.history.replaceState({}, document.title, window.location.pathname);
+      const updatedUserPresets = [...userPresets, newPreset];
+      presetStorageHelper.setStoredPresets(updatedUserPresets);
+      dispatch({ type: "SET_USER_PRESETS", payload: updatedUserPresets });
+      dispatch({ type: "SET_SELECTED_PRESET_ID", payload: newPreset.id });
     }
-  }, []);
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}, []);
+
 
   return (
     <PlaygroundStateContext.Provider
