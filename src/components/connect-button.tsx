@@ -182,18 +182,52 @@ export function ConnectButton() {
   const { pgState } = usePlaygroundState();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [initiateConnectionFlag, setInitiateConnectionFlag] = useState(false);
+  const startBackendSession = async () => {
+    try {
+      const response = await fetch(
+        "https://backendsts-production-e50c.up.railway.app/start-session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            room_name: "default-room", // can be dynamic later
+          }),
+        }
+      );
 
-  const handleConnectionToggle = async () => {
-    if (shouldConnect) {
-      await disconnect();
-    } else {
-      if (!pgState.openaiAPIKey) {
-        setShowAuthDialog(true);
-      } else {
-        await initiateConnection();
-      }
+      const data = await response.json();
+      console.log("Backend session started:", data);
+      return data;
+    } catch (error) {
+      console.error("Failed to start backend session:", error);
+      throw error;
     }
   };
+
+const handleConnectionToggle = async () => {
+  if (shouldConnect) {
+    await disconnect();
+  } else {
+    try {
+      // 1️⃣ Start backend agent session
+      const session = await startBackendSession();
+
+      // 2️⃣ Connect frontend to LiveKit with backend token
+      await connect({
+        token: session.token,
+        url: session.url,
+        room: session.room,
+      });
+
+    } catch (err) {
+      console.error("Full connection flow failed:", err);
+    }
+  }
+};
+
+
 
   const initiateConnection = useCallback(async () => {
     setConnecting(true);
@@ -253,7 +287,8 @@ export function ConnectButton() {
         </video>
         {/* Button text overlay */}
         <span className="relative z-10 text-white text-2xl font-semibold pointer-events-none select-none">
-          {isActive ? "Connecting" : "Talk to Lemi"}
+          {connecting ? "Connecting..." : "Talk to Lemi"}
+
         </span>
       </button>
 
