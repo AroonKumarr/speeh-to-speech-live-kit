@@ -68,11 +68,14 @@ const connect = async (session?: BackendSession) => {
     if (!pgState.openaiAPIKey) {
       throw new Error("OpenAI API key is required to connect");
     }
-    const response = await fetch("/api/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pgState),
-    });
+    const response = await fetch(
+  "https://backendsts-production-e50c.up.railway.app/api/token",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(pgState),
+  }
+);
 
     if (!response.ok) {
       throw new Error("Failed to fetch token");
