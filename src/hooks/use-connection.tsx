@@ -41,15 +41,31 @@ export const ConnectionProvider = ({
 
   const { pgState, dispatch } = usePlaygroundState();
 
-  const connect = async () => {
+  type BackendSession = {
+  token: string;
+  url: string;
+  room: string;
+};
+
+
+const connect = async (session?: BackendSession) => {
+  let token: string;
+  let wsUrl: string;
+  let room: string;
+
+  if (session) {
+    // Use the backend session passed from ConnectButton
+    token = session.token;
+    wsUrl = session.url;
+    room = session.room;
+  } else {
+    // Fallback to API key flow
     if (!pgState.openaiAPIKey) {
       throw new Error("OpenAI API key is required to connect");
     }
     const response = await fetch("/api/token", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pgState),
     });
 
@@ -57,15 +73,22 @@ export const ConnectionProvider = ({
       throw new Error("Failed to fetch token");
     }
 
-    const { accessToken, url } = await response.json();
+    const data = await response.json();
+    token = data.accessToken;
+    wsUrl = data.url;
+    room = "default-room";
+  }
 
-    setConnectionDetails({
-      wsUrl: url,
-      token: accessToken,
-      shouldConnect: true,
-      voice: pgState.sessionConfig.voice,
-    });
-  };
+  setConnectionDetails({
+    wsUrl,
+    token,
+    shouldConnect: true,
+    voice: pgState.sessionConfig.voice,
+  });
+
+  console.log("Connected with token:", token, "url:", wsUrl, "room:", room);
+};
+
 
   const disconnect = useCallback(async () => {
     setConnectionDetails((prev) => ({ ...prev, shouldConnect: false }));
